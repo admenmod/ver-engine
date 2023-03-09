@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+	"module": "ESNext",
+	"experimentalDecorators": true,
+    "useDefineForClassFields": true,
+    "moduleResolution": "Node",
+	"strictFunctionTypes": true,
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+	"noImplicitAny": true,
+    "skipLibCheck": false,
+    "sourceMap": true,
+    "lib": ["ESNext"],
+	"baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["/"]
+}

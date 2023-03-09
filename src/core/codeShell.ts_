@@ -1,0 +1,20 @@
+export function codeShell(
+	code: string,
+	env: object = Object.create(null),
+	p: {
+		insulate?: boolean;
+		source?: string
+	} = {}
+): () => void {
+	if(p.insulate ?? true) {
+		env = new Proxy(env, {
+			has: () => true,
+			get: (target, key, receiver) => key === Symbol.unscopables ? void 0 : Reflect.get(target, key, receiver)
+		});
+	};
+
+	return function() { eval(`with(env) {${code}}; //# sourceURL=${p.source || 'code'}`); };
+};
+
+
+codeShell.from = (code: (...args: any[]) => any) => code.toString().replace(/^function.+?\{(.*)\}$/s, '$1');
