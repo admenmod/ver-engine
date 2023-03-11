@@ -1,7 +1,6 @@
-import { EventEmitter } from "@/core/Event";
-import { Vector2 } from "@/core/Vector2";
-import { LayersList } from "@/global";
-import { Node2D } from "@/core/nodes/Node2D";
+import { Vector2 } from '@/core/Vector2';
+import { EventEmitter } from '@/core/Event';
+import type { TouchesController } from '@/core/TouchesController';
 
 
 export class Camera extends EventEmitter {
@@ -22,4 +21,8 @@ export class Camera extends EventEmitter {
 	public get vhw() { return this.size.y / this.size.x; }
 	public get vmax() { return Math.max(this.size.x, this.size.y) / 100; }
 	public get vmin() { return Math.min(this.size.x, this.size.y) / 100; }
+
+	public process(dt: number, touches: TouchesController): void {
+		;
+	}
 }

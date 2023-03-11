@@ -18,8 +18,12 @@ export class SensorCamera extends Camera {
 		center: new Vector2()
 	};
 
-	constructor(size: Vector2) {
-		super(size);
+	constructor(camera: Camera) {
+		super(camera.size);
+
+		this.position.set(camera.position);
+		this.scale.set(camera.scale);
+		this.rotation = camera.rotation;
 	}
 
 	process(dt: number, touches: TouchesController) {
@@ -41,7 +45,7 @@ export class SensorCamera extends Camera {
 				this.scale.set(this.fix.scale.buf().inc((centerTouches.module / this.fix.pos.module)));
 				// this.position.set(center.buf().sub(this.fix.center));
 
-				this['@scale'].emit(this.scale);
+				(this as SensorCamera).emit('scale', this.scale);
 
 
 				if(this.touch2.isUp()) this.touch1 = this.touch2 = null;

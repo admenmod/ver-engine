@@ -1,21 +1,16 @@
 import { Vector2 } from '@/core/Vector2';
-// import { Node } from '@/core/nodes/Node';
-// import { Block } from '@/scenes/nodes/Block';
 import { Node2D } from '@/core/nodes/Node2D';
 import { GridMap } from '@/core/GridMap';
-import { LayersList, touches, canvas, screenSize, camera, layers } from '@/global';
+import { LayersList, touches, canvas, layers, gm } from '@/global';
 import { Player } from '@/scenes/nodes/Player';
 import { Joystick } from '@/core/Joystick';
 import type { Camera } from '@/core/Camera';
-
-// import '@/scenes/t';
-// import '@/modules/main';
 
 
 export class MainScene extends Node2D {
 	public gridMap = new GridMap({
 		tile: new Vector2(50, 50),
-		size: screenSize.buf()
+		size: gm.screen
 	});
 
 	public joystick = new Joystick();
@@ -31,7 +26,7 @@ export class MainScene extends Node2D {
 		update(dt: number) {
 			if(this.time > 100) {
 				this.textFPS = `FPS: ${(1000/dt).toFixed(2)}`;
-				this.textScreenSize = `Screen size: ${screenSize.x}, ${screenSize.y}`;
+				this.textScreenSize = `Screen size: ${gm.screen.x}, ${gm.screen.y}`;
 
 				this.time = 0;
 			};
@@ -56,9 +51,9 @@ export class MainScene extends Node2D {
 			ctx.textBaseline = 'bottom';
 
 			ctx.strokeStyle = '#111111';
-			ctx.strokeText(this.textScreenSize, screenSize.x - 10, screenSize.y - 10);
+			ctx.strokeText(this.textScreenSize, gm.screen.x - 10, gm.screen.y - 10);
 			ctx.fillStyle = '#eeeeee';
-			ctx.fillText(this.textScreenSize, screenSize.x - 10, screenSize.y - 10);
+			ctx.fillText(this.textScreenSize, gm.screen.x - 10, gm.screen.y - 10);
 
 			ctx.restore();
 		}
@@ -68,10 +63,6 @@ export class MainScene extends Node2D {
 	constructor() {
 		super();
 
-		camera.on('rescale', scale => this.gridMap.scale.set(scale));
-
-		const player = this.addChild(new Player(), 'Player');
-
 		const updateOnResize = (size: Vector2) => {
 			this.joystick.pos.set(canvas.size.buf().sub(this.joystick.radius).sub(5 * canvas.vw, 5 * canvas.vh));
 			this.joystick.syncPos();
@@ -79,12 +70,15 @@ export class MainScene extends Node2D {
 			this.gridMap.size.set(size);
 		};
 
-		updateOnResize(screenSize);
-		canvas['@resize'].on(updateOnResize);
+		updateOnResize(gm.screen);
+		gm.on('resize', updateOnResize);
 
+		gm.on('camera.scale', scale => this.gridMap.scale.set(scale));
+
+
+		const player = this.addChild(new Player(), 'Player');
 
 		player.joystick = this.joystick;
-
 
 
 		console.log(`Initialize scene "${this.name}"`);
@@ -94,7 +88,7 @@ export class MainScene extends Node2D {
 	protected _init(): void {
 		console.log(this.gridMap);
 
-		console.log(`Scene: ${this.name}\nScreen size: ${screenSize.x}, ${screenSize.y}`);
+		console.log(`Scene: ${this.name}\nScreen size: ${gm.screen.x}, ${gm.screen.y}`);
 	}
 
 	//========== Update ==========//
@@ -103,21 +97,21 @@ export class MainScene extends Node2D {
 
 		const player = this.getNode<Player>('Player')!;
 
-		camera.position.moveTime(
+		gm.camera.position.moveTime(
 			player.position.buf()
-			.sub(camera.size.buf().div(2).div(camera.scale))
+			.sub(gm.camera.size.buf().div(2).div(gm.camera.scale))
 			.add(player.size.buf().div(2))
 		, 10);
 
 
-		camera.process(dt, touches);
+		gm.camera.process(dt, touches);
 
 
 		this.systemInfoDrawObject.update(dt);
 	}
 
 	protected _render(layers: LayersList, camera: Camera): void {
-		layers.main.clearRect(0, 0, screenSize.x, screenSize.y);
+		layers.main.clearRect(0, 0, gm.screen.x, gm.screen.y);
 
 		layers.main.save();
 		layers.main.beginPath();
