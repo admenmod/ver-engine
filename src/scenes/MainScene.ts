@@ -5,11 +5,13 @@ import { LayersList, touches, canvas, layers, gm } from '@/global';
 import { Player } from '@/scenes/nodes/Player';
 import { Joystick } from '@/core/Joystick';
 import type { Camera } from '@/core/Camera';
+import { Block } from '@/scenes/nodes/Block';
+import { MapParser } from '@/core/MapParser';
 
 
 export class MainScene extends Node2D {
 	public gridMap = new GridMap({
-		tile: new Vector2(50, 50),
+		tile: new Vector2().set(gm.camera.pixelDensity),
 		size: gm.screen
 	});
 
@@ -81,12 +83,22 @@ export class MainScene extends Node2D {
 		player.joystick = this.joystick;
 
 
+		const platform1 = this.addChild(new Block({
+			pos: new Vector2(0, 10),
+			size: new Vector2(40, 0.2)
+		}), 'platform1');
+
+
 		console.log(`Initialize scene "${this.name}"`);
 	}
 
 	//========== Init ==========//
 	protected _init(): void {
-		console.log(this.gridMap);
+		let map: MapParser.Map = new MapParser.Map();
+
+		map.load('maps/test-map.json').then(() => {
+			console.log(map);
+		});
 
 		console.log(`Scene: ${this.name}\nScreen size: ${gm.screen.x}, ${gm.screen.y}`);
 	}
@@ -97,11 +109,7 @@ export class MainScene extends Node2D {
 
 		const player = this.getNode<Player>('Player')!;
 
-		gm.camera.position.moveTime(
-			player.position.buf()
-			.sub(gm.camera.size.buf().div(2).div(gm.camera.scale))
-			.add(player.size.buf().div(2))
-		, 10);
+		gm.camera.position.moveTime(player.globalPosition, 10);
 
 
 		gm.camera.process(dt, touches);
@@ -116,7 +124,7 @@ export class MainScene extends Node2D {
 		layers.main.save();
 		layers.main.beginPath();
 
-		const center = this.position.buf().sub(camera.position).inc(camera.scale);
+		const center = this.getDrawPosition(camera);
 
 		let a = 30 * camera.scale.x;
 		layers.main.strokeStyle = '#ffff00';
@@ -127,7 +135,8 @@ export class MainScene extends Node2D {
 		layers.main.stroke();
 		layers.main.restore();
 
-		this.gridMap.draw(layers.main, camera.position.buf().inc(camera.scale));
+		
+		this.gridMap.draw(layers.main, camera.getDrawPosition());
 
 
 		this.joystick.draw(layers.main);

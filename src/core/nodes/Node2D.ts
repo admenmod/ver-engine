@@ -1,6 +1,6 @@
-import { Vector2 } from "@/core/Vector2";
-import { LayersList, Node } from "@/core/nodes/Node";
-import { Camera } from "@/core/Camera";
+import { Vector2 } from '@/core/Vector2';
+import { LayersList, Node } from '@/core/nodes/Node';
+import { Camera } from '@/core/Camera';
 
 
 export class Node2D extends Node {
@@ -87,19 +87,26 @@ export class Node2D extends Node {
 	}
 
 
+	public getDrawPosition(camera: Camera) {
+		return this.globalPosition.inc(camera.scale).inc(camera.pixelDensity).sub(camera.getDrawPosition());
+	}
+
+
 	protected _draw(
 		ctx: CanvasRenderingContext2D,
-		pos: Vector2 = this.position,
-		scale: Vector2 = this.scale,
-		rot: number = this.rotation
+		pos: Vector2,
+		scale: Vector2,
+		rot: number,
+		pixelDensity: number
 	) {}
 
 
 	public render(layers: LayersList, camera: Camera): void {
 		this._draw(layers.main,
-			this.globalPosition.sub(camera.position.buf()).inc(camera.scale),
+			this.getDrawPosition(camera),
 			this.globalScale.inc(camera.scale),
-			this.globalRotation - camera.rotation
+			this.globalRotation - camera.rotation,
+			camera.pixelDensity
 		);
 
 		super.render(layers, camera);

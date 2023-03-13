@@ -189,6 +189,12 @@ export class Vector2 {
 	}
 
 
+	public static from(v: { x: number, y: number } | Vector2_t): Vector2 {
+		//@ts-ignore
+		return new Vector2(v.x ?? v[0], v.y ?? v[1]);
+	}
+
+
 	public static readonly ZERO: Vector2 = Object.freeze(new Vector2());
 	public static readonly ONE: Vector2 = Object.freeze(new Vector2(1, 1));
 

@@ -1,7 +1,8 @@
-export declare function codeShell(code: string, env?: object, p?: {
+declare function codeShell(code: string, env?: object, p?: {
 	insulate?: boolean;
 	source?: string;
 }): () => void;
-export declare namespace codeShell {
+
+declare namespace codeShell {
 	var from: (code: (...args: any[]) => any) => string;
 }

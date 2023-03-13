@@ -11,8 +11,18 @@ export class Camera extends EventEmitter {
 	public get rotation(): number { return this._rotation; }
 	public set rotation(v: number) { this._rotation = v; }
 
-	constructor(public readonly size: Vector2) {
+	constructor(
+		public readonly size: Vector2,
+		public pixelDensity: number = 20
+	) {
 		super();
+	}
+
+	public getDrawPosition(): Vector2 {
+		return this.position.buf()
+			.inc(this.scale)
+			.inc(this.pixelDensity)
+			.sub(this.size.buf().div(2));
 	}
 
 	public get vw() { return this.size.x / 100; }
@@ -22,7 +32,5 @@ export class Camera extends EventEmitter {
 	public get vmax() { return Math.max(this.size.x, this.size.y) / 100; }
 	public get vmin() { return Math.min(this.size.x, this.size.y) / 100; }
 
-	public process(dt: number, touches: TouchesController): void {
-		;
-	}
+	public process(dt: number, touches: TouchesController): void {}
 }

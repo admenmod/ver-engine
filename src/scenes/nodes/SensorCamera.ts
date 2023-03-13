@@ -18,8 +18,8 @@ export class SensorCamera extends Camera {
 		center: new Vector2()
 	};
 
-	constructor(size: Vector2) {
-		super(size);
+	constructor(size: Vector2, pixelDensity: number) {
+		super(size, pixelDensity);
 	}
 
 	process(dt: number, touches: TouchesController) {

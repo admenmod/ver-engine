@@ -1,41 +1,63 @@
 import { Vector2 } from '@/core/Vector2';
 import { Node2D } from '@/core/nodes/Node2D';
 import type { Joystick } from '@/core/Joystick';
+import { b2w } from '@/global';
+import { b2Body, b2Vec2 } from '@/core/Box2DAliases';
 
 
 export class Player extends Node2D {
 	public velocity = new Vector2();
 
-	public size = new Vector2(20, 20);
-	public speed = 0.01;
-	public maxspeed = 10000;
+	public size = new Vector2(1, 1);
+	public speed = 0.02;
+	public maxspeed = 10;
 	public rub = 0.95;
 
 	public joystick: Joystick | null = null;
 
-	constructor() {
+	public dinamicBody: b2Body;
+
+
+	constructor(p: {
+		size?: Vector2,
+		pos?: Vector2
+	} = {}) {
 		super();
+
+		this.position.set(p.pos || new Vector2());
+		this.size.set(p.size || new Vector2(1, 1));
+
+		this.dinamicBody = b2w.createBox(this.position, this.size, 0, 2);
+		this.dinamicBody.SetSleepingAllowed(false);
 	}
 
 	protected _process(dt: number): void {
+		this.velocity.set(Vector2.from(this.dinamicBody.GetLinearVelocity()));
+
 		if(this.joystick) {
 			this.velocity.moveAngle(this.joystick.value * this.speed * dt, this.joystick.angle);
-
 			if(this.velocity.module > this.maxspeed) this.velocity.normalize(this.maxspeed);
 		}
 
-		this.position.add(this.velocity.inc(this.rub));
+		this.velocity.inc(this.rub);
+
+		this.dinamicBody.SetLinearVelocity(new b2Vec2(this.velocity.x, this.velocity.y));
+
+		this.position.set(Vector2.from(this.dinamicBody.GetPosition()));
+		this.rotation = this.dinamicBody.GetAngle();
 	}
 
 	protected _draw(
 		ctx: CanvasRenderingContext2D,
 		pos: Vector2,
 		scale: Vector2,
-		rot: number
+		rot: number,
+		pixelDensity: number
 	) {
-		super._draw(ctx, pos, scale, rot);
+		super._draw(ctx, pos, scale, rot, pixelDensity);
 
-		const size = this.size.buf().inc(scale);
+		const size = this.size.buf().inc(scale).inc(pixelDensity);
+		pos.sub(size.buf().div(2));
 
 		ctx.save();
 		ctx.fillStyle = '#ff1111';
