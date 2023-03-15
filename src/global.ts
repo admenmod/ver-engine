@@ -60,7 +60,7 @@ export const gm = new class GameManager extends EventEmitter {
 
 
 export const b2w = new class Box2DWrapper extends EventEmitter {
-	public gravity = new b2Vec2(0, 20);
+	public gravity = new b2Vec2(0, 10);
 
 	public world = new b2World(this.gravity, true);
 

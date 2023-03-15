@@ -108,7 +108,7 @@ export class MainScene extends Node2D {
 			const body = this.getNode<Player>('Player')!.dinamicBody;
 
 			const v = body.GetLinearVelocity();
-			v.Add(new b2Vec2(0, -10));
+			v.Add(new b2Vec2(0, -9));
 			body.SetLinearVelocity(v);
 		}
 

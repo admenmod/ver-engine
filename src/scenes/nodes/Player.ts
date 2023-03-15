@@ -10,8 +10,8 @@ export class Player extends Node2D {
 
 	public size = new Vector2(1, 1);
 	public speed = 0.01;
-	public maxspeed = 30;
-	public rub = 0.9;
+	public maxspeed = new Vector2(5, 1000);
+	// public rub = 0.99;
 
 	public joystick: Joystick | null = null;
 
@@ -40,7 +40,7 @@ export class Player extends Node2D {
 
 		if(this.joystick) {
 			this.velocity.moveAngle(this.joystick.value * this.speed * dt, this.joystick.angle);
-			if(this.velocity.module > this.maxspeed) this.velocity.normalize(this.maxspeed);
+			// if(this.velocity.module > this.maxspeed) this.velocity.normalize(this.maxspeed);
 		}
 
 		// this.velocity.inc(this.rub);
