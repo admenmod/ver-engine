@@ -7,6 +7,7 @@ import { MainLoop } from '@/core/MainLoop';
 import { MainScene } from '@/scenes/MainScene';
 import { Viewport } from '@/core/nodes/Viewport';
 import { b2Body, b2BodyDef, b2FixtureDef, b2Vec2, b2World, Shapes } from '@/core/Box2DAliases';
+import { MapParser } from '@/core/MapParser';
 
 
 export type LayersList = { [id: string]: CanvasRenderingContext2D };
@@ -21,13 +22,14 @@ appElement.append(canvas);
 
 export const layers: LayersList = {};
 
-for(let id in canvas.layers) {	
+for(let id in canvas.layers) {
 	layers[id] = canvas.layers[id].getContext('2d')!;
 }
 
 
 export const touches = new TouchesController(canvas);
 
+export const mapParser = new MapParser();
 
 export const gm = new class GameManager extends EventEmitter {
 	public '@resize' = new Event<this, [Vector2]>(this);
@@ -58,7 +60,7 @@ export const gm = new class GameManager extends EventEmitter {
 
 
 export const b2w = new class Box2DWrapper extends EventEmitter {
-	public gravity = new b2Vec2(0, 0);
+	public gravity = new b2Vec2(0, 20);
 
 	public world = new b2World(this.gravity, true);
 
@@ -72,15 +74,14 @@ export const b2w = new class Box2DWrapper extends EventEmitter {
 		const { fixtureDef, world } = this;
 
 		fixtureDef.density = 1;
-		fixtureDef.friction = 0.5;
-		fixtureDef.restitution = 0.2;
+		fixtureDef.friction = 0.5; //0.5;
+		fixtureDef.restitution = 0.05; //0.2;
 
 		const bodyDef = new b2BodyDef();
 		bodyDef.type = t;
 
 		fixtureDef.shape = new Shapes.b2PolygonShape();
 		(fixtureDef.shape as Shapes.b2PolygonShape).SetAsBox(size.x/2, size.y/2);
-		
 
 		bodyDef.position.Set(pos.x, pos.y);
 		bodyDef.angle = rot;
@@ -138,6 +139,4 @@ mainLoop.on('update', dt => {
 
 mainLoop.start();
 
-gm.root.ready().then(() => {
-	gm.root.init();
-});
+gm.root.ready();

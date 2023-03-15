@@ -19,13 +19,13 @@ export class Node2D extends Node {
 
 	constructor() { super(); }
 
-	public get globalPosition(): Vector2 { return this._getRelativePosition(Node.MAX_NESTING); }
-	public get globalScale(): Vector2 { return this._getRelativeScale(Node.MAX_NESTING); }
-	public get globalRotation(): number { return this._getRelativeRotation(Node.MAX_NESTING); }
-	public get globalzIndex(): number { return this._getRelativezIndex(Node.MAX_NESTING); }
+	public get globalPosition(): Vector2 { return this.getRelativePosition(Node.MAX_NESTING); }
+	public get globalScale(): Vector2 { return this.getRelativeScale(Node.MAX_NESTING); }
+	public get globalRotation(): number { return this.getRelativeRotation(Node.MAX_NESTING); }
+	public get globalzIndex(): number { return this.getRelativezIndex(Node.MAX_NESTING); }
 
 
-	public _getRelativePosition(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): Vector2 {
+	public getRelativePosition(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): Vector2 {
 		const l = Math.min(nl, arr.length, Node.MAX_NESTING);
 		const acc = new Vector2();
 
@@ -49,7 +49,7 @@ export class Node2D extends Node {
 		return acc;
 	}
 
-	public _getRelativeScale(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): Vector2 {
+	public getRelativeScale(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): Vector2 {
 		const l = Math.min(nl, arr.length, Node.MAX_NESTING);
 		const acc = this.scale.buf();
 
@@ -60,7 +60,7 @@ export class Node2D extends Node {
 		return acc;
 	}
 
-	public _getRelativeRotation(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): number {
+	public getRelativeRotation(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): number {
 		const l = Math.min(nl, arr.length, Node.MAX_NESTING);
 		let acc = this.rotation;
 
@@ -71,7 +71,7 @@ export class Node2D extends Node {
 		return acc;
 	}
 
-	public _getRelativezIndex(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): number {
+	public getRelativezIndex(nl: number = 0, arr: Node2D[] = this.getChainParents(Node2D)): number {
 		const l = Math.min(nl, arr.length, Node.MAX_NESTING);
 		let acc = this.zIndex;
 

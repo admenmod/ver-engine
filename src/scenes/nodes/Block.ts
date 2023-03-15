@@ -41,6 +41,9 @@ export class Block extends Node2D {
 		pos.sub(size.buf().div(2));
 
 		ctx.save();
+		ctx.translate(pos.x + size.x/2, pos.y + size.y/2);
+		ctx.rotate(rot);
+		ctx.translate(-(pos.x + size.x/2), -(pos.y + size.y/2));
 		ctx.fillStyle = '#ff1111';
 		ctx.fillRect(pos.x, pos.y, size.x, size.y);
 		ctx.restore();

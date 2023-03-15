@@ -9,13 +9,16 @@ export class Player extends Node2D {
 	public velocity = new Vector2();
 
 	public size = new Vector2(1, 1);
-	public speed = 0.02;
-	public maxspeed = 10;
-	public rub = 0.95;
+	public speed = 0.01;
+	public maxspeed = 30;
+	public rub = 0.9;
 
 	public joystick: Joystick | null = null;
 
 	public dinamicBody: b2Body;
+
+
+	public isAir: boolean = false;
 
 
 	constructor(p: {
@@ -29,6 +32,7 @@ export class Player extends Node2D {
 
 		this.dinamicBody = b2w.createBox(this.position, this.size, 0, 2);
 		this.dinamicBody.SetSleepingAllowed(false);
+		this.dinamicBody.SetFixedRotation(true);
 	}
 
 	protected _process(dt: number): void {
@@ -39,7 +43,7 @@ export class Player extends Node2D {
 			if(this.velocity.module > this.maxspeed) this.velocity.normalize(this.maxspeed);
 		}
 
-		this.velocity.inc(this.rub);
+		// this.velocity.inc(this.rub);
 
 		this.dinamicBody.SetLinearVelocity(new b2Vec2(this.velocity.x, this.velocity.y));
 
@@ -60,6 +64,9 @@ export class Player extends Node2D {
 		pos.sub(size.buf().div(2));
 
 		ctx.save();
+		ctx.translate(pos.x + size.x/2, pos.y + size.y/2);
+		ctx.rotate(rot);
+		ctx.translate(-(pos.x + size.x/2), -(pos.y + size.y/2));
 		ctx.fillStyle = '#ff1111';
 		ctx.fillRect(pos.x, pos.y, size.x, size.y);
 		ctx.restore();

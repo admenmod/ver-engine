@@ -65,13 +65,13 @@ export class Node extends EventEmitter {
 
 
 	public init(): void {
-		if(this._isInited) return;
+		if(!this._isReady || this._isInited) return;
 
 		this._init();
 		this._isInited = true;
 
-		const l = this.getCountChildren();
-		for(let i = 0; i < l; i++) this.getChild(i).init();
+		// const l = this.getCountChildren();
+		// for(let i = 0; i < l; i++) this.getChild(i).init();
 
 		(this as Node).emit('init');
 	}
@@ -101,6 +101,8 @@ export class Node extends EventEmitter {
 		await Promise.all(proms);
 
 		this._isReady = true;
+
+		this.init();
 
 		(this as Node).emit('ready');
 	}

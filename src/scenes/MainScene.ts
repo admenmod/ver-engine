@@ -1,12 +1,14 @@
 import { Vector2 } from '@/core/Vector2';
 import { Node2D } from '@/core/nodes/Node2D';
 import { GridMap } from '@/core/GridMap';
-import { LayersList, touches, canvas, layers, gm } from '@/global';
+import { LayersList, touches, canvas, layers, gm, mapParser } from '@/global';
 import { Player } from '@/scenes/nodes/Player';
 import { Joystick } from '@/core/Joystick';
 import type { Camera } from '@/core/Camera';
 import { Block } from '@/scenes/nodes/Block';
 import { MapParser } from '@/core/MapParser';
+import { TileMap } from '@/core/TileMap';
+import {b2Vec2} from '@/core/Box2DAliases';
 
 
 export class MainScene extends Node2D {
@@ -73,20 +75,18 @@ export class MainScene extends Node2D {
 		};
 
 		updateOnResize(gm.screen);
-		gm.on('resize', updateOnResize);
 
+		gm.on('resize', updateOnResize);
 		gm.on('camera.scale', scale => this.gridMap.scale.set(scale));
 
 
-		const player = this.addChild(new Player(), 'Player');
+		const tilemap = this.addChild(new TileMap('maps/test-map.json'), 'TileMap');
 
+		const player = this.addChild(new Player({
+			pos: new Vector2(8, 8),
+			size: new Vector2(0.95, 0.95)
+		}), 'Player');
 		player.joystick = this.joystick;
-
-
-		const platform1 = this.addChild(new Block({
-			pos: new Vector2(0, 10),
-			size: new Vector2(40, 0.2)
-		}), 'platform1');
 
 
 		console.log(`Initialize scene "${this.name}"`);
@@ -94,11 +94,7 @@ export class MainScene extends Node2D {
 
 	//========== Init ==========//
 	protected _init(): void {
-		let map: MapParser.Map = new MapParser.Map();
-
-		map.load('maps/test-map.json').then(() => {
-			console.log(map);
-		});
+		console.log(this.getNode<TileMap>('TileMap')?.map);
 
 		console.log(`Scene: ${this.name}\nScreen size: ${gm.screen.x}, ${gm.screen.y}`);
 	}
@@ -106,6 +102,15 @@ export class MainScene extends Node2D {
 	//========== Update ==========//
 	protected _process(dt: number): void {
 		this.joystick.update(touches);
+
+		const touch = touches.findTouch(t => t.isPress());
+		if(touch && touch.x < gm.screen.x/2) {
+			const body = this.getNode<Player>('Player')!.dinamicBody;
+
+			const v = body.GetLinearVelocity();
+			v.Add(new b2Vec2(0, -10));
+			body.SetLinearVelocity(v);
+		}
 
 		const player = this.getNode<Player>('Player')!;
 
@@ -135,7 +140,7 @@ export class MainScene extends Node2D {
 		layers.main.stroke();
 		layers.main.restore();
 
-		
+
 		this.gridMap.draw(layers.main, camera.getDrawPosition());
 
 
