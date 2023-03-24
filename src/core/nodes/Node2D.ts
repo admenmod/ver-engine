@@ -7,11 +7,11 @@ export class Node2D extends Node {
 	public readonly position = new Vector2();
 	public readonly scale = new Vector2(1, 1);
 
-	public _rotation: number = 0;
+	protected _rotation: number = 0;
 	public get rotation(): number { return this._rotation; }
 	public set rotation(v: number) { this._rotation = v; }
 
-	public _zIndex: number = 0;
+	protected _zIndex: number = 0;
 	public get zIndex(): number { return this._zIndex; }
 	public set zIndex(v: number) { this._zIndex = v; }
 
@@ -109,6 +109,16 @@ export class Node2D extends Node {
 			camera.pixelDensity
 		);
 
-		super.render(layers, camera);
+		// super.render(layers, camera);
+
+		if(!this.isInited || !this.isReady) return;
+
+		this._render(layers, camera);
+
+		const arr: Node2D[] = ([...this._child_nodes] as Node2D[]).sort((a, b) => b._zIndex - a._zIndex);
+		// const l = this.getCountChildren();
+		for(let i = 0; i < arr.length; i++) arr[i].render(layers, camera);
+
+		(this as Node).emit('render', layers, camera);
 	}
 }

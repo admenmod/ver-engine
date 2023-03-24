@@ -1,4 +1,4 @@
-import { GameObject } from "@/modules/GameObject";
+import { GameObject } from '@/modules/GameObject';
 
 
 export declare namespace Structure {

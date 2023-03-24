@@ -1,8 +1,8 @@
-import { Event, EventEmitter } from "@/core/Event";
-import { Vector2 } from "@/core/Vector2";
+import { Event, EventDispatcher } from '@/core/events';
+import { Vector2 } from '@/core/Vector2';
 
 
-export class Image extends EventEmitter {
+export class Image extends EventDispatcher {
 	public '@load' = new Event<Image, [Image]>(this);
 	public '@error' = new Event<Image, [Error]>(this);
 

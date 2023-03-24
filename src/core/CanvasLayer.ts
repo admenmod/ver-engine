@@ -1,5 +1,5 @@
-import { EventEmitter, Event } from "@/core/Event";
-import { Vector2 } from "@/core/Vector2";
+import { Event } from '@/core/events';
+import { Vector2 } from '@/core/Vector2';
 
 
 export class CanvasLayer extends HTMLElement {
@@ -23,8 +23,6 @@ export class CanvasLayer extends HTMLElement {
 		pixelScale?: number;
 	} = {}) {
 		super();
-		// this.em = new EventEmitter();
-
 		const root = this.attachShadow({ mode: 'open' });
 		const paramlayers = p.layers || this.getAttribute('layers')?.split(/\s+/) || ['back', 'main'];
 

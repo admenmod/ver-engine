@@ -1,13 +1,17 @@
 import { Vector2 } from '@/core/Vector2';
-import { EventEmitter, Event } from '@/core/Event';
+import { EventDispatcher, Event } from '@/core/events';
 import { TouchesController } from '@/core/TouchesController';
 import { CanvasLayer } from '@/core/CanvasLayer';
 import { SensorCamera } from '@/scenes/nodes/SensorCamera';
 import { MainLoop } from '@/core/MainLoop';
 import { MainScene } from '@/scenes/MainScene';
 import { Viewport } from '@/core/nodes/Viewport';
-import { b2Body, b2BodyDef, b2FixtureDef, b2Vec2, b2World, Shapes } from '@/core/Box2DAliases';
 import { MapParser } from '@/core/MapParser';
+import {
+	b2Body, b2BodyDef, b2FixtureDef,
+	b2Vec2, b2World, b2Shapes,
+	b2Contacts, b2ContactImpulse, b2Manifold
+} from '@/core/Box2DAliases';
 
 
 export type LayersList = { [id: string]: CanvasRenderingContext2D };
@@ -31,7 +35,8 @@ export const touches = new TouchesController(canvas);
 
 export const mapParser = new MapParser();
 
-export const gm = new class GameManager extends EventEmitter {
+
+export const gm = new class GameManager extends EventDispatcher {
 	public '@resize' = new Event<this, [Vector2]>(this);
 	public '@camera.scale' = new Event<this, [Vector2]>(this);
 
@@ -59,29 +64,35 @@ export const gm = new class GameManager extends EventEmitter {
 }
 
 
-export const b2w = new class Box2DWrapper extends EventEmitter {
+export const b2w = new class Box2DWrapper extends EventDispatcher {
+	public '@BeginContact' = new Event<Box2DWrapper, [b2Contacts.b2Contact]>(this);
+	public '@EndContact' = new Event<Box2DWrapper, [b2Contacts.b2Contact]>(this);
+	public '@PostSolve' = new Event<Box2DWrapper, [b2Contacts.b2Contact, b2ContactImpulse]>(this);
+	public '@PreSolve' = new Event<Box2DWrapper, [b2Contacts.b2Contact, b2Manifold]>(this);
+
+
 	public gravity = new b2Vec2(0, 10);
 
 	public world = new b2World(this.gravity, true);
 
+	public bodyDef = new b2BodyDef();
 	public fixtureDef = new b2FixtureDef();
 
 
-	public debugDraw = new Box2D.Dynamics.b2DebugDraw();
+	// public debugDraw = new Box2D.Dynamics.b2DebugDraw();
 
 
 	public createBox(pos: Vector2, size: Vector2, rot: number, t: number): b2Body {
-		const { fixtureDef, world } = this;
+		const { bodyDef, fixtureDef, world } = this;
 
 		fixtureDef.density = 1;
 		fixtureDef.friction = 0.5; //0.5;
-		fixtureDef.restitution = 0.05; //0.2;
+		fixtureDef.restitution = 0.2; //0.2;
 
-		const bodyDef = new b2BodyDef();
 		bodyDef.type = t;
 
-		fixtureDef.shape = new Shapes.b2PolygonShape();
-		(fixtureDef.shape as Shapes.b2PolygonShape).SetAsBox(size.x/2, size.y/2);
+		fixtureDef.shape = new b2Shapes.b2PolygonShape();
+		(fixtureDef.shape as b2Shapes.b2PolygonShape).SetAsBox(size.x/2, size.y/2);
 
 		bodyDef.position.Set(pos.x, pos.y);
 		bodyDef.angle = rot;
@@ -93,6 +104,28 @@ export const b2w = new class Box2DWrapper extends EventEmitter {
 	}
 
 	public init(): void {
+		const b2listner = new Box2D.Dynamics.b2ContactListener();
+
+
+		b2listner.BeginContact = (contact: b2Contacts.b2Contact) => {
+			this['@BeginContact'].emit(contact);
+		};
+
+		b2listner.EndContact = (contact: b2Contacts.b2Contact) => {
+			this['@EndContact'].emit(contact);
+		};
+
+		b2listner.PostSolve = (contact: b2Contacts.b2Contact, impulse: b2ContactImpulse) => {
+			this['@PostSolve'].emit(contact, impulse);
+		};
+
+		b2listner.PreSolve = (contact: b2Contacts.b2Contact, oldManifold: b2Manifold) => {
+			this['@PreSolve'].emit(contact, oldManifold);
+		};
+
+
+		this.world.SetContactListener(b2listner);
+
 		// const { debugDraw, world } = this;
 		//
 		// debugDraw.SetSprite(layers.back);

@@ -1,6 +1,6 @@
 const isOnceSymbol = Symbol('isOnceSymbol');
 
-type FnOnce<This, Args extends any[]> = ((this: This, ...args: Args) => any) & { [isOnceSymbol]?: boolean };
+type FnOnce<This = any, Args extends any[] = any[]> = ((this: This, ...args: Args) => any) & { [isOnceSymbol]?: boolean };
 
 
 export class Event<This = any, Args extends any[] = any[]> {
@@ -55,7 +55,7 @@ type ArgsEvent<T extends object, Type extends ConvertDel<KeysEvents<T>>> =
 	getEventArgs<T, ConvertAdd<Type> extends KeysEvents<T> ? ConvertAdd<Type> : never>;
 
 
-export class EventEmitter {
+export class EventDispatcher {
 	public on<
 		Type extends ConvertDel<KeysEvents<this>>,
 		Args extends ArgsEvent<this, Type>
@@ -89,28 +89,65 @@ export class EventEmitter {
 	}
 }
 
-// пример использования
-class A extends EventEmitter {
-	public '@init' = new Event<A, ['init param']>(this);
-	public '@exit' = new Event<A, ['exit param']>(this);
-	public '@update' = new Event<A, [number]>(this);
+
+type primitive_t = string | number | symbol;
+
+class EventEmitter {
+	protected _events!: { [type: primitive_t]: FnOnce[] & { store: any } };
+
+	constructor(public isUseStore: boolean = false) {
+		Object.defineProperty(this, '_events', { value: {} });
+	}
+
+	public once<args_t extends any[] = any[]>(type: primitive_t, fn: FnOnce<any, args_t>) {
+		fn[isOnceSymbol] = true;
+		return this.on(type, fn);
+	}
+
+	public on<args_t extends any[] = any[]>(type: primitive_t, fn: FnOnce<any, args_t>) {
+		if(!this._events[type]) {
+			(this._events[type] as any) = [];
+
+			Object.defineProperty(this._events[type], 'store', { value: {} });
+
+			let store = this._events[type].store;
+			store.type = type;
+			store.self = store.emitter = this;
+		}
+
+		this._events[type].push(fn);
+
+		return this;
+	}
+
+	public off<args_t extends any[] = any[]>(type: primitive_t, fn: FnOnce<any, args_t>) {
+		if(!type) for(let i in this._events) delete this._events[i];
+		else if(!this._events[type]) return this;
+		else if(!fn) delete this._events[type];
+		else {
+			let l = this._events[type].indexOf(fn);
+			if(~l) this._events[type].splice(l, 1);
+		}
+
+		return this;
+	}
+
+	public emit<args_t extends any[] = any[]>(type: primitive_t, ...args: args_t) {
+		if(!this._events[type]) return false;
+
+		for(let i = 0; i < this._events[type].length; i++) {
+			this._events[type][i].apply(this.isUseStore ? this._events[type].store : this, args);
+			if(this._events[type][i][isOnceSymbol]) this._events[type].splice(i, 1);
+		}
+
+		return true;
+	}
+
+	//@ts-ignore
+	public remove<args_t extends any[] = any[]>(type: primitive_t, fn: FnOnce<any, args_t>): this;
 }
 
-let a = new A();
-
-a.emit('init', 'init param');
-a.emit('exit', 'exit param');
-
-a.on('update', function(dt) {
-	dt; // type: number
-	this; // type: A
+Object.defineProperty(EventEmitter.prototype, 'remove', {
+	value: EventEmitter.prototype.off,
+	writable: true, enumerable: false, configurable: true
 });
-
-
-a.off('exit', function(n) {
-	n;
-	this;
-});
-
-
-a.clear('init');

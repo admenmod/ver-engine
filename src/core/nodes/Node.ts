@@ -1,13 +1,13 @@
-import { Event, EventEmitter } from "@/core/Event";
-import { NodePath } from "@/core/NodePath";
+import { Event, EventDispatcher } from '@/core/events';
+import { NodePath } from '@/core/NodePath';
 import { getInstanceOf, isInstanceOf } from '@/core/types';
-import { Camera } from "@/core/Camera";
+import { Camera } from '@/core/Camera';
 
 
 export type LayersList = { [id: string]: CanvasRenderingContext2D };
 
 
-export class Node extends EventEmitter {
+export class Node extends EventDispatcher {
 	public '@init' = new Event<Node, []>(this);
 	public '@exit' = new Event<Node, []>(this);
 	public '@ready' = new Event<Node, []>(this);

@@ -1,5 +1,5 @@
-import { EventEmitter } from "@/core/Event";
-import { Vector2, Vector2_t } from "@/core/Vector2";
+import { EventDispatcher } from '@/core/events';
+import { Vector2 } from '@/core/Vector2';
 
 
 const Mineral = {
@@ -39,7 +39,7 @@ class MineralMap {
 }
 
 
-class GameAPI extends EventEmitter {
+class GameAPI extends EventDispatcher {
 	constructor() {
 		super();
 	}
@@ -77,7 +77,7 @@ const env = {
 };
 
 
-export class Computer extends EventEmitter {
+export class Computer extends EventDispatcher {
 	public files: { [K: string]: File } = {};
 
 	constructor(firmware: string) {

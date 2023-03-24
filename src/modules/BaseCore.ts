@@ -1,5 +1,5 @@
-import { Structure } from "@/modules/Structure";
-import { Computer } from "@/modules/code/Computer";
+import { Structure } from '@/modules/Structure';
+import { Computer } from '@/modules/code/Computer';
 
 
 export declare namespace BaseCore {

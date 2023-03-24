@@ -1,6 +1,6 @@
-import { Vector2 } from "@/core/Vector2";
-import { Image } from "@/core/nodes/Image";
-import { Node2D } from "@/core/nodes/Node2D";
+import { Vector2 } from '@/core/Vector2';
+import { Image } from '@/core/nodes/Image';
+import { Node2D } from '@/core/nodes/Node2D';
 
 
 export class Sprite2D extends Node2D {

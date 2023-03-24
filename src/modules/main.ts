@@ -1,5 +1,5 @@
-import { Vector2 } from "@/core/Vector2";
-import { BaseCore } from "@/modules/BaseCore";
+import { Vector2 } from '@/core/Vector2';
+import { BaseCore } from '@/modules/BaseCore';
 
 
 const main_file = `

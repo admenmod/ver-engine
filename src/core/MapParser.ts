@@ -1,5 +1,5 @@
 import { Vector2 } from '@/core/Vector2';
-import { EventEmitter, Event } from '@/core/Event';
+import { EventDispatcher, Event } from '@/core/events';
 import { loadImage } from '@/core/helpers';
 
 
@@ -84,7 +84,7 @@ const BASE64 = 'data:image/png;base64,';
 
 
 type Property_ = Property;
-class Property extends EventEmitter implements IProperty {
+class Property extends EventDispatcher implements IProperty {
 	public readonly name: string;
 	public readonly type: string;
 	public readonly value: string;
@@ -100,7 +100,7 @@ class Property extends EventEmitter implements IProperty {
 
 
 type Tile_ = Tile;
-class Tile extends EventEmitter implements ITile {
+class Tile extends EventDispatcher implements ITile {
 	public readonly id: number;
 	public readonly properties: Property[] = [];
 
@@ -117,7 +117,7 @@ class Tile extends EventEmitter implements ITile {
 
 
 type Layer_ = Layer;
-class Layer extends EventEmitter implements ILayer {
+class Layer extends EventDispatcher implements ILayer {
 	protected readonly _data: ILayer;
 
 	public readonly data: Uint8Array | Uint16Array | Uint32Array;
@@ -177,7 +177,7 @@ class Layer extends EventEmitter implements ILayer {
 
 
 type Tileset_ = Tileset;
-class Tileset extends EventEmitter implements ITileset {
+class Tileset extends EventDispatcher implements ITileset {
 	public '@load' = new Event<Tileset, [Tileset, HTMLImageElement]>(this);
 
 	protected _data: ITileset;
@@ -238,7 +238,7 @@ class Tileset extends EventEmitter implements ITileset {
 
 
 type Map_ = Map;
-class Map extends EventEmitter implements IMap {
+class Map extends EventDispatcher implements IMap {
 	public '@load' = new Event<Map, [Map]>(this);
 
 	protected readonly _data: IMap;
@@ -313,7 +313,7 @@ export declare namespace MapParser {
 }
 
 
-export class MapParser extends EventEmitter {
+export class MapParser extends EventDispatcher {
 	private static _this: MapParser;
 
 	public '@load:map' = new Event<MapParser, [Map]>(this);

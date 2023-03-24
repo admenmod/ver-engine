@@ -1,9 +1,9 @@
 import { Vector2 } from '@/core/Vector2';
-import { EventEmitter } from '@/core/Event';
+import { EventDispatcher } from '@/core/events';
 import type { TouchesController } from '@/core/TouchesController';
 
 
-export class Camera extends EventEmitter {
+export class Camera extends EventDispatcher {
 	public readonly position = new Vector2();
 	public readonly scale = new Vector2(1, 1);
 

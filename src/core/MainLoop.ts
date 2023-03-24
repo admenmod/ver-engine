@@ -1,7 +1,7 @@
-import { Event, EventEmitter } from '@/core/Event';
+import { Event, EventDispatcher } from '@/core/events';
 
 
-export class MainLoop extends EventEmitter {
+export class MainLoop extends EventDispatcher {
 	public '@start' = new Event<MainLoop, []>(this);
 	public '@stop' = new Event<MainLoop, []>(this);
 	public '@update' = new Event<MainLoop, [number]>(this);

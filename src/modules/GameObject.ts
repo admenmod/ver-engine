@@ -1,5 +1,5 @@
-import { Vector2 } from "@/core/Vector2";
-import { EventEmitter, Event } from "@/core/Event";
+import { Vector2 } from '@/core/Vector2';
+import { EventDispatcher, Event } from '@/core/events';
 
 
 export declare namespace GameObject {
@@ -12,7 +12,7 @@ export declare namespace GameObject {
 import IOption = GameObject.IOption;
 
 
-export class GameObject extends EventEmitter {
+export class GameObject extends EventDispatcher {
 	public readonly position = new Vector2();
 
 	constructor(p: IOption = <IOption>{}) {

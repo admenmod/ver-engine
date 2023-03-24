@@ -1,8 +1,19 @@
 import { Vector2 } from '@/core/Vector2';
 import { Node2D } from '@/core/nodes/Node2D';
 import type { Joystick } from '@/core/Joystick';
-import { b2w } from '@/global';
-import { b2Body, b2Vec2 } from '@/core/Box2DAliases';
+import { b2w, gm, touches } from '@/global';
+import { b2Body, b2Contacts, b2Shapes, b2Vec2 } from '@/core/Box2DAliases';
+
+
+const arrayFromList = <T extends { next: T }>(list: T): T[] => {
+	const arr: T[] = [];
+
+	if(!list) return arr;
+
+	do { arr.push(list); } while(list = list.next);
+
+	return arr;
+};
 
 
 export class Player extends Node2D {
@@ -18,7 +29,7 @@ export class Player extends Node2D {
 	public dinamicBody: b2Body;
 
 
-	public isAir: boolean = false;
+	public isGround: boolean = false;
 
 
 	constructor(p: {
@@ -35,11 +46,69 @@ export class Player extends Node2D {
 		this.dinamicBody.SetFixedRotation(true);
 	}
 
+	protected _init(): void {
+		let countContact = 0;
+
+		b2w.on('BeginContact', c => {
+			const body = c.GetFixtureA().GetBody();
+			const block = c.GetFixtureB().GetBody();
+
+			// const a = body.GetPosition();
+			// const b = block.GetPosition();
+			// const va = (c.GetFixtureB().GetShape() as b2Shapes.b2PolygonShape).GetVertices();
+			// const vb = (c.GetFixtureB().GetShape() as b2Shapes.b2PolygonShape).GetVertices();
+
+			// if(body === this.dinamicBody && a.y + va[3].y < b.y + vb[3].y) this.isJump = true;
+
+			const m = c.GetManifold();
+
+			// if(body === this.dinamicBody && m.m_localPoint.y > 0) this.isJump = true;
+
+			countContact++;
+			if(body === this.dinamicBody && m.m_localPoint.y > 0) this.isGround = true;
+		});
+
+
+		b2w.on('EndContact', c => {
+			// setTimeout(() => {
+			// const body = c.GetFixtureA().GetBody();
+			const body = this.dinamicBody;
+
+			// const list = arrayFromList(body.GetContactList());
+
+			// console.log(list);
+
+			// if(body === this.dinamicBody && list.length < 100)  this.isJump = false;
+			// });
+
+			countContact--;
+			if(countContact === 0) this.isGround = false;
+		});
+	}
+
 	protected _process(dt: number): void {
+		const list = arrayFromList(this.dinamicBody.GetContactList());
+
+		if(list.length > 0 && list.some(i => i.contact.GetManifold().m_localPoint.y > 0)) this.isGround = true;
+		else this.isGround = false;
+
+
+		const touch = touches.findTouch(t => t.isPress());
+		if(touch && touch.x < gm.screen.x/2 && this.isGround) {
+			const body = this.dinamicBody;
+
+			body.GetLinearVelocity().y += -9;
+		}
+
+
+
 		this.velocity.set(Vector2.from(this.dinamicBody.GetLinearVelocity()));
 
-		if(this.joystick) {
-			this.velocity.moveAngle(this.joystick.value * this.speed * dt, this.joystick.angle);
+		if(this.joystick && this.isGround) {
+		// if(this.joystick) {
+			// this.velocity.moveAngle(this.joystick.value * this.speed * dt, this.joystick.angle);
+			let s = Math.abs(this.joystick.angle) < Math.PI/2 ? 1 : -1;
+			this.velocity.add(this.joystick.value * this.speed * dt * s, 0);
 			// if(this.velocity.module > this.maxspeed) this.velocity.normalize(this.maxspeed);
 		}
 

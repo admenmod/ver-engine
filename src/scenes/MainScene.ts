@@ -1,17 +1,18 @@
+// попросить написать систему узлов getNode getChild и т.д. как в godot
 import { Vector2 } from '@/core/Vector2';
 import { Node2D } from '@/core/nodes/Node2D';
 import { GridMap } from '@/core/GridMap';
 import { LayersList, touches, canvas, layers, gm, mapParser } from '@/global';
 import { Player } from '@/scenes/nodes/Player';
 import { Joystick } from '@/core/Joystick';
-import type { Camera } from '@/core/Camera';
 import { Block } from '@/scenes/nodes/Block';
-import { MapParser } from '@/core/MapParser';
 import { TileMap } from '@/core/TileMap';
-import {b2Vec2} from '@/core/Box2DAliases';
+import type { Camera } from '@/core/Camera';
 
 
 export class MainScene extends Node2D {
+	public player!: Player;
+
 	public gridMap = new GridMap({
 		tile: new Vector2().set(gm.camera.pixelDensity),
 		size: gm.screen
@@ -82,7 +83,7 @@ export class MainScene extends Node2D {
 
 		const tilemap = this.addChild(new TileMap('maps/test-map.json'), 'TileMap');
 
-		const player = this.addChild(new Player({
+		const player = this.player = this.addChild(new Player({
 			pos: new Vector2(8, 8),
 			size: new Vector2(0.95, 0.95)
 		}), 'Player');
@@ -102,15 +103,6 @@ export class MainScene extends Node2D {
 	//========== Update ==========//
 	protected _process(dt: number): void {
 		this.joystick.update(touches);
-
-		const touch = touches.findTouch(t => t.isPress());
-		if(touch && touch.x < gm.screen.x/2) {
-			const body = this.getNode<Player>('Player')!.dinamicBody;
-
-			const v = body.GetLinearVelocity();
-			v.Add(new b2Vec2(0, -9));
-			body.SetLinearVelocity(v);
-		}
 
 		const player = this.getNode<Player>('Player')!;
 
@@ -138,6 +130,10 @@ export class MainScene extends Node2D {
 		layers.main.moveTo(center.x-a, center.y);
 		layers.main.lineTo(center.x+a, center.y);
 		layers.main.stroke();
+
+		layers.main.fillStyle = '#eeeeee';
+		layers.main.font = '20px Arial';
+		layers.main.fillText('isJump: ' + this.player.isGround, 10, 100);
 		layers.main.restore();
 
 
