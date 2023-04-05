@@ -46,6 +46,10 @@ export class Player extends Node2D {
 		this.dinamicBody.SetFixedRotation(true);
 	}
 
+	public jump() {
+		if(this.isGround) this.dinamicBody.GetLinearVelocity().y += -9;
+	}
+
 	protected _init(): void {
 		let countContact = 0;
 
@@ -94,10 +98,8 @@ export class Player extends Node2D {
 
 
 		const touch = touches.findTouch(t => t.isPress());
-		if(touch && touch.x < gm.screen.x/2 && this.isGround) {
-			const body = this.dinamicBody;
-
-			body.GetLinearVelocity().y += -9;
+		if(touch && touch.x < gm.screen.x/2) {
+			this.jump();
 		}
 
 
@@ -105,7 +107,6 @@ export class Player extends Node2D {
 		this.velocity.set(Vector2.from(this.dinamicBody.GetLinearVelocity()));
 
 		if(this.joystick && this.isGround) {
-		// if(this.joystick) {
 			// this.velocity.moveAngle(this.joystick.value * this.speed * dt, this.joystick.angle);
 			let s = Math.abs(this.joystick.angle) < Math.PI/2 ? 1 : -1;
 			this.velocity.add(this.joystick.value * this.speed * dt * s, 0);

@@ -1,4 +1,4 @@
-import { Event } from '@/core/Event';
+import { Event } from '@/core/events';
 import { Vector2 } from '@/core/Vector2';
 import { Camera } from '@/core/Camera';
 import type { TouchesController, Touch } from '@/core/TouchesController';

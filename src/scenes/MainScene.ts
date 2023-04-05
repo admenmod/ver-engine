@@ -1,5 +1,7 @@
-// попросить написать систему узлов getNode getChild и т.д. как в godot
+//TODO: сделатать сис мапингов как в nvim
+//TODO: сделать алерт в канвасе для вывода сообщений
 import { Vector2 } from '@/core/Vector2';
+import { KeyboardInputInterceptor } from '@/core/KeyboardInputInterceptor';
 import { Node2D } from '@/core/nodes/Node2D';
 import { GridMap } from '@/core/GridMap';
 import { LayersList, touches, canvas, layers, gm, mapParser } from '@/global';
@@ -65,8 +67,44 @@ export class MainScene extends Node2D {
 	};
 
 
+	private tik: number = 0;
+	private sume: string = '';
+	private sumeprev: string = '';
+	private resetMaping() {
+		this.tik = 0;
+		this.sume = '';
+		this.sumeprev = '';
+	}
+
 	constructor() {
 		super();
+
+		const hiddenInput = document.createElement('input');
+		hiddenInput.style.position = 'fixed';
+		hiddenInput.style.top = '-1000px';
+		canvas.append(hiddenInput);
+
+		const keyboardInputInterceptor = new KeyboardInputInterceptor(hiddenInput);
+		keyboardInputInterceptor.init();
+		canvas.addEventListener('click', () => keyboardInputInterceptor.focus());
+
+
+		keyboardInputInterceptor.on('keydown:input', e => {
+			const maping = '\\hs';
+
+			if(this.sume.length < maping.length) {
+				this.sume += e.key;
+				this.tik = 0;
+			}
+
+			console.log(this.sume, this.sumeprev, this.tik);
+
+			if(this.sume === maping) {
+				alert(maping +', '+ 'Привет!');
+				this.resetMaping();
+			}
+		});
+
 
 		const updateOnResize = (size: Vector2) => {
 			this.joystick.pos.set(canvas.size.buf().sub(this.joystick.radius).sub(5 * canvas.vw, 5 * canvas.vh));
@@ -102,6 +140,12 @@ export class MainScene extends Node2D {
 
 	//========== Update ==========//
 	protected _process(dt: number): void {
+		if(this.tik > 400) {
+			this.resetMaping();
+		} else if(this.sume.length && this.sume.length === this.sumeprev.length) this.tik += dt;
+		this.sumeprev = this.sume;
+
+
 		this.joystick.update(touches);
 
 		const player = this.getNode<Player>('Player')!;
@@ -134,6 +178,7 @@ export class MainScene extends Node2D {
 		layers.main.fillStyle = '#eeeeee';
 		layers.main.font = '20px Arial';
 		layers.main.fillText('isJump: ' + this.player.isGround, 10, 100);
+		layers.main.fillText('tik: ' + this.tik.toFixed(2), 10, 120);
 		layers.main.restore();
 
 
