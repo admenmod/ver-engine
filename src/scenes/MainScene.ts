@@ -2,6 +2,7 @@
 //TODO: сделать алерт в канвасе для вывода сообщений
 import { Vector2 } from '@/core/Vector2';
 import { KeyboardInputInterceptor } from '@/core/KeyboardInputInterceptor';
+import { KeymapperOfActions } from '@/core/KeymapperOfActions';
 import { Node2D } from '@/core/nodes/Node2D';
 import { GridMap } from '@/core/GridMap';
 import { LayersList, touches, canvas, layers, gm, mapParser } from '@/global';
@@ -67,14 +68,7 @@ export class MainScene extends Node2D {
 	};
 
 
-	private tik: number = 0;
-	private sume: string = '';
-	private sumeprev: string = '';
-	private resetMaping() {
-		this.tik = 0;
-		this.sume = '';
-		this.sumeprev = '';
-	}
+	private keymapperOfActions!: KeymapperOfActions;
 
 	constructor() {
 		super();
@@ -89,20 +83,26 @@ export class MainScene extends Node2D {
 		canvas.addEventListener('click', () => keyboardInputInterceptor.focus());
 
 
-		keyboardInputInterceptor.on('keydown:input', e => {
-			const maping = '\\hs';
+		const keymapperOfActions = new KeymapperOfActions();
+		this.keymapperOfActions = keymapperOfActions;
+		keymapperOfActions.init(keyboardInputInterceptor);
+		keymapperOfActions.enable();
 
-			if(this.sume.length < maping.length) {
-				this.sume += e.key;
-				this.tik = 0;
-			}
+		keymapperOfActions.reqister(['\\', 'h', 's'], () => {
+			alert('\\hs Hello');
+		});
+		keymapperOfActions.reqister(['\\', 'h'], () => {
+			alert('\\h Hi');
+		});
 
-			console.log(this.sume, this.sumeprev, this.tik);
-
-			if(this.sume === maping) {
-				alert(maping +', '+ 'Привет!');
-				this.resetMaping();
-			}
+		keymapperOfActions.reqister(['a', 'a'], () => {
+			alert('aa');
+		});
+		keymapperOfActions.reqister(['a', 'a'], () => {
+			alert('alslekda');
+		});
+		keymapperOfActions.reqister(['a', 'a', 'ArrowUp'], () => {
+			alert('aa ArrowUp');
 		});
 
 
@@ -140,10 +140,7 @@ export class MainScene extends Node2D {
 
 	//========== Update ==========//
 	protected _process(dt: number): void {
-		if(this.tik > 400) {
-			this.resetMaping();
-		} else if(this.sume.length && this.sume.length === this.sumeprev.length) this.tik += dt;
-		this.sumeprev = this.sume;
+		this.keymapperOfActions.update(dt);
 
 
 		this.joystick.update(touches);
@@ -178,7 +175,7 @@ export class MainScene extends Node2D {
 		layers.main.fillStyle = '#eeeeee';
 		layers.main.font = '20px Arial';
 		layers.main.fillText('isJump: ' + this.player.isGround, 10, 100);
-		layers.main.fillText('tik: ' + this.tik.toFixed(2), 10, 120);
+		layers.main.fillText('timeout: ' + this.keymapperOfActions.timeout.toFixed(2), 10, 120);
 		layers.main.restore();
 
 

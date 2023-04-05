@@ -32,8 +32,13 @@ interface EventData {
 }
 
 
+export namespace KeyboardInputInterceptor {
+	export type Event = EventData;
+}
+
+
 export class KeyboardInputInterceptor extends EventDispatcher {
-	public '@init' = new Event<KeyboardInputInterceptor, any[]>(this);
+	public '@init' = new Event<KeyboardInputInterceptor, []>(this);
 	public '@destroy' = new Event<KeyboardInputInterceptor, []>(this);
 
 	// public '@keyup' = new Event<KeyboardInputInterceptor, [EventData]>(this);
