@@ -1,5 +1,4 @@
-//TODO: сделатать сис мапингов как в nvim
-//TODO: сделать алерт в канвасе для вывода сообщений
+import type { Camera } from '@/core/Camera';
 import { Vector2 } from '@/core/Vector2';
 import { KeyboardInputInterceptor } from '@/core/KeyboardInputInterceptor';
 import { KeymapperOfActions } from '@/core/KeymapperOfActions';
@@ -10,7 +9,7 @@ import { Player } from '@/scenes/nodes/Player';
 import { Joystick } from '@/core/Joystick';
 import { Block } from '@/scenes/nodes/Block';
 import { TileMap } from '@/core/TileMap';
-import type { Camera } from '@/core/Camera';
+import { Popup } from '@/scenes/nodes/Popup';
 
 
 export class MainScene extends Node2D {
@@ -68,6 +67,9 @@ export class MainScene extends Node2D {
 	};
 
 
+	private popups: Popup[] = [];
+
+
 	private keymapperOfActions!: KeymapperOfActions;
 
 	constructor() {
@@ -82,28 +84,66 @@ export class MainScene extends Node2D {
 		keyboardInputInterceptor.init();
 		canvas.addEventListener('click', () => keyboardInputInterceptor.focus());
 
+		keyboardInputInterceptor.on('key:all', e => {
+			console.log(e.type, e.key, e);
+		});
 
-		const keymapperOfActions = new KeymapperOfActions();
+
+		const keymapperOfActions = new KeymapperOfActions('normal');
 		this.keymapperOfActions = keymapperOfActions;
 		keymapperOfActions.init(keyboardInputInterceptor);
 		keymapperOfActions.enable();
 
-		keymapperOfActions.reqister(['\\', 'h', 's'], () => {
-			alert('\\hs Hello');
-		});
-		keymapperOfActions.reqister(['\\', 'h'], () => {
-			alert('\\h Hi');
-		});
 
-		keymapperOfActions.reqister(['a', 'a'], () => {
-			alert('aa');
-		});
-		keymapperOfActions.reqister(['a', 'a'], () => {
-			alert('alslekda');
-		});
-		keymapperOfActions.reqister(['a', 'a', 'ArrowUp'], () => {
-			alert('aa ArrowUp');
-		});
+		const onmappings: KeymapperOfActions.Action = ({ mapping }) => {
+			let text: string = '';
+
+			switch(mapping.join('|')) {
+				case 'ctrl-l': text = 'list l';
+					break;
+				case 'ctrl- ': text = 'list space';
+					break;
+				case 'a|a': text = 'a + a';
+					break;
+				case 'a|a|ArrowUp': text = 'Сверху нет ничего интересного :(';
+					break;
+				case '\\|h': text = 'Hi';
+					break;
+				case '\\|h|s': text = 'Hello';
+					break;
+				default: text = 'Забыл обработать :)'
+					break;
+			}
+
+
+			const popup = new Popup({
+				pos: this.player.position.buf().add(0, -1.5),
+				text: text
+			});
+
+			popup.ready();
+			this.popups.push(popup);
+		};
+
+		keymapperOfActions.reqister(0, [' '], () => this.player.jump());
+
+		keymapperOfActions.reqister(0, ['ctrl- '], onmappings);
+		keymapperOfActions.reqister(0, ['ctrl-l'], onmappings);
+
+		keymapperOfActions.reqister(0, ['\\', 'h'], onmappings);
+		keymapperOfActions.reqister('normal', ['\\', 'h', 's'], onmappings);
+		keymapperOfActions.reqister('normal', ['a', 'a'], onmappings);
+		keymapperOfActions.reqister(0, ['a', 'a', 'ArrowUp'], onmappings);
+
+		alert(
+`global: ${JSON.stringify(keymapperOfActions.gmaps.map(i => i.mapping.join('|')), null, '\t')
+}, ${
+	JSON.stringify([...keymapperOfActions.mapmap].map(([mode, maps]) => {
+		return `mode: ${mode.toString()} > ${
+			JSON.stringify(maps.map(i => i.mapping.join('|')), null, '\t')
+		}`;
+	}), null, '\t')
+}`);
 
 
 		const updateOnResize = (size: Vector2) => {
@@ -149,8 +189,19 @@ export class MainScene extends Node2D {
 
 		gm.camera.position.moveTime(player.globalPosition, 10);
 
-
 		gm.camera.process(dt, touches);
+
+
+		for(let i = 0, len = this.popups.length; i < len; i++) {
+			this.popups[i].process(dt);
+			const l = this.popups.findIndex(i => i.alpha <= 0);
+
+			if(~l) {
+				this.popups.splice(l, 1);
+				i--;
+				len--;
+			}
+		}
 
 
 		this.systemInfoDrawObject.update(dt);
@@ -161,6 +212,9 @@ export class MainScene extends Node2D {
 
 		layers.main.save();
 		layers.main.beginPath();
+
+		this.gridMap.draw(layers.main, camera.getDrawPosition());
+
 
 		const center = this.getDrawPosition(camera);
 
@@ -175,11 +229,11 @@ export class MainScene extends Node2D {
 		layers.main.fillStyle = '#eeeeee';
 		layers.main.font = '20px Arial';
 		layers.main.fillText('isJump: ' + this.player.isGround, 10, 100);
-		layers.main.fillText('timeout: ' + this.keymapperOfActions.timeout.toFixed(2), 10, 120);
+		layers.main.fillText('timeout: ' + this.keymapperOfActions.timeout.toFixed(0), 10, 120);
 		layers.main.restore();
 
 
-		this.gridMap.draw(layers.main, camera.getDrawPosition());
+		for(let i = 0; i < this.popups.length; i++) this.popups[i].render(layers, camera);
 
 
 		this.joystick.draw(layers.main);

@@ -1,11 +1,10 @@
 //TODO: добавить mode, удаление, флаги перезаписываемочти и т.д.
-import { EventDispatcher, Event } from '@/core/events';
 import type { KeyboardInputInterceptor } from '@/core/KeyboardInputInterceptor';
+import { EventDispatcher, Event } from '@/core/events';
 
-
+type mode_t = string | symbol;
 type mapping_t = string[];
-type action_t = (...args: any[]) => any;
-type handler_t = (e: KeyboardInputInterceptor.Event) => any;
+type action_t = (mapping: Mapping) => any;
 
 
 const isPartialMatching = (acc: mapping_t, mapping: mapping_t): boolean => {
@@ -22,7 +21,7 @@ const isFullMatching = (acc: mapping_t, mapping: mapping_t) => acc.length === ma
 
 
 interface IMapping {
-	mapping: mapping_t,
+	mapping: mapping_t;
 	action: action_t;
 }
 
@@ -35,20 +34,29 @@ export class Mapping implements IMapping {
 }
 
 
+export namespace KeymapperOfActions {
+	export type Action = action_t;
+}
+
 export class KeymapperOfActions extends EventDispatcher {
 	public '@init' = new Event<KeymapperOfActions, []>(this);
 	public '@destroy' = new Event<KeymapperOfActions, []>(this);
 	public '@enable' = new Event<KeymapperOfActions, []>(this);
 	public '@disable' = new Event<KeymapperOfActions, []>(this);
 
-	public '@reqister' = new Event<KeymapperOfActions, [mapping_t, action_t]>(this);
+	public '@newmode' = new Event<KeymapperOfActions, [mode_t]>(this);
+	public '@changemode' = new Event<KeymapperOfActions, [mode_t]>(this);
+	public '@reqister' = new Event<KeymapperOfActions, [mode_t | 0, mapping_t, action_t]>(this);
 
 	protected keyboardInputInterceptor!: KeyboardInputInterceptor;
 
-	// public mode: number = 0;
-	public maps: IMapping[] = [];
+	private mode: mode_t | null = null;
+	public mapmap = new Map<mode_t, IMapping[]>();
+
+	public gmaps: IMapping[] = [];
+	public cmaps!: IMapping[];
 	public mapping: IMapping | null = null;
-	public timeoutlen: number = 2000;
+	public timeoutlen: number = 1000;
 
 	public timeout: number = this.timeoutlen;
 	private isTimeRun: boolean = true;
@@ -57,7 +65,17 @@ export class KeymapperOfActions extends EventDispatcher {
 	private _isActive: boolean = false;
 	public get isActive(): boolean { return this._isActive; }
 
-	private handler!: handler_t;
+	private handler!: (e: KeyboardInputInterceptor.Event) => any;
+
+
+	constructor(mode: mode_t, timeoutlen?: number) {
+		super();
+
+		if(timeoutlen) this.timeoutlen = timeoutlen;
+
+		this.setMode(mode);
+	}
+
 
 	public resetAcc(): void { this.acc.length = 0; }
 	public resetTimer(): void { this.timeout = this.timeoutlen; }
@@ -83,9 +101,20 @@ export class KeymapperOfActions extends EventDispatcher {
 				return;
 			}
 
-			this.acc.push(e.key);
+			let metapref = '';
+			if(e.ctrl) metapref += 'ctrl-';
+			if(e.alt) metapref += 'alt-';
 
-			const mappings = this.maps.filter(i => isPartialMatching(this.acc, i.mapping));
+			this.acc.push(metapref+e.key);
+
+
+			const maps = this.cmaps;
+
+			const mappings = [
+				...maps.filter(i => isPartialMatching(this.acc, i.mapping)),
+				...this.gmaps.filter(i => isPartialMatching(this.acc, i.mapping))
+			];
+
 			if(!mappings.length) return this.resetAcc();
 
 
@@ -93,11 +122,9 @@ export class KeymapperOfActions extends EventDispatcher {
 			this.mapping = mapping;
 
 			if(mapping && mappings.length === 1) {
-				mapping.action.call(null);
+				mapping.action.call(null, mapping);
 				this.resetAcc();
 			} else if(!mapping) this.isTimeRun = false;
-
-			console.log(JSON.stringify(this.acc), JSON.stringify(mapping));
 		};
 
 		this.keyboardInputInterceptor.on('keydown:input', this.handler);
@@ -111,13 +138,32 @@ export class KeymapperOfActions extends EventDispatcher {
 		this.emit('disable');
 	}
 
-	public reqister(this: KeymapperOfActions, mapping: mapping_t, action: action_t): void {
-		const collision = this.maps.find(i => isFullMatching(i.mapping, mapping));
+	public reqister(this: KeymapperOfActions, mode: mode_t | 0, mapping: mapping_t, action: action_t): void {
+		if(mode !== 0 && !this.mapmap.has(mode)) return;
+
+		let maps: IMapping[];
+		if(mode === 0) maps = this.gmaps;
+		else maps = this.mapmap.get(mode)!;
+
+		const collision = maps.find(i => isFullMatching(i.mapping, mapping));
 
 		if(collision) collision.action = action;
-		else this.maps.push(new Mapping(mapping, action));
+		else maps.push(new Mapping(mapping, action));
 
-		this.emit('reqister', mapping, action);
+		this.emit('reqister', mode, mapping, action);
+	}
+
+	setMode(this: KeymapperOfActions, mode: mode_t) {
+		if(!this.mapmap.has(mode)) {
+			this.mapmap.set(mode, []);
+
+			this.emit('newmode', mode);
+		}
+
+		this.mode = mode;
+		this.cmaps = this.mapmap.get(this.mode)!;
+
+		this.emit('changemode', mode);
 	}
 
 	public update(dt: number): void {
@@ -126,7 +172,7 @@ export class KeymapperOfActions extends EventDispatcher {
 		if(this.acc.length && this.isTimeRun) this.timeout -= dt;
 
 		if(this.timeout < 0) {
-			if(this.mapping) this.mapping.action.call(null);
+			if(this.mapping) this.mapping.action.call(null, this.mapping);
 
 			this.resetAcc();
 			this.resetTimer();

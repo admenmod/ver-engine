@@ -56,12 +56,12 @@ export class KeyboardInputInterceptor extends EventDispatcher {
 
 
 	constructor(protected input: HTMLInputElement | HTMLAreaElement, p: {
-		preventDefault?: boolean
+		notPreventDefault?: boolean
 	} = {}) {
 		super();
 
 		this.handler = (e: any) => {
-			if(p.preventDefault) e.preventDefault();
+			if(!p.notPreventDefault) e.preventDefault();
 
 			const data: EventData = {
 				shift: false,
